@@ -7,7 +7,9 @@ NOTION_API_KEY      = ENV["NOTION_API_KEY"]?.try(&.to_s) || ""
 ROCKET_SECRET_TOKEN = ENV["ROCKET_SECRET_TOKEN"]?.try(&.to_s) || ""
 
 Kemal.config.port = PORT
+
 Kemal.config.env = "production"
+serve_static false
 
 before_all "/" do |env|
   env.response.content_type = "application/json"
