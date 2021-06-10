@@ -1,0 +1,21 @@
+---
+name: Tests
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches-ignore:
+      - "chore"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: oprypin/install-crystal@v1
+      - run: LOCALES_DIR="**/spec/src/locales" crystal run src/app.cr > /dev/null 2>&1 &
+      - run: crystal spec

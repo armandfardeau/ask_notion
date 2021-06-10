@@ -1,0 +1,12 @@
+---
+extends: default
+
+ignore: |
+  .github
+
+rules:
+  line-length:
+    max: 160
+    level: warning
+  truthy:
+    level: error

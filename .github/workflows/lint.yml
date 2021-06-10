@@ -1,0 +1,24 @@
+---
+name: Lint
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches-ignore:
+      - "chore"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: oprypin/install-crystal@v1
+      - run: crystal tool format --check
+
+      - uses: actions/checkout@v1
+      - name: yaml-lint
+        uses: ibiqlik/action-yamllint@v3
