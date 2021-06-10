@@ -1,7 +1,7 @@
 PORT := 8080
 REGION := fr-par
 REGISTRY_ENDPOINT := rg.$(REGION).scw.cloud
-REGISTRY_NAMESPACE := internal_tools
+REGISTRY_NAMESPACE := osp-internal-tools
 IMAGE_NAME := ask_notion
 VERSION := latest
 TAG := $(REGISTRY_ENDPOINT)/$(REGISTRY_NAMESPACE)/$(IMAGE_NAME):$(VERSION)
