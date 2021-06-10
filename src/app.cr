@@ -1,8 +1,8 @@
 require "http/server"
 require "json"
 
-HOST           = ENV.has_key?("HOST") ? ENV["HOST"] : "0.0.0.0"
-PORT           = ENV.has_key?("PORT") ? ENV["PORT"].to_i : 8080
+HOST = ENV.has_key?("HOST") ? ENV["HOST"] : "0.0.0.0"
+PORT = ENV.has_key?("PORT") ? ENV["PORT"].to_i : 8080
 
 server = HTTP::Server.new do |context|
   params = context.request.query_params
