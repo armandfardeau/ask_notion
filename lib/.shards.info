@@ -1,0 +1,15 @@
+---
+version: 1.0
+shards:
+  radix:
+    git: https://github.com/luislavena/radix.git
+    version: 0.4.1
+  kilt:
+    git: https://github.com/jeromegn/kilt.git
+    version: 0.4.1
+  exception_page:
+    git: https://github.com/crystal-loot/exception_page.git
+    version: 0.1.5
+  kemal:
+    git: https://github.com/kemalcr/kemal.git
+    version: 1.0.0

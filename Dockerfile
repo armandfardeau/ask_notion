@@ -1,7 +1,8 @@
 FROM crystallang/crystal:latest as builder
 WORKDIR /workdir
-COPY ./src/ .
-RUN crystal build --release --static app.cr
+COPY . .
+RUN shards install
+RUN crystal build --release --static src/app.cr
 
 FROM busybox
 WORKDIR /api
