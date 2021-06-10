@@ -1,0 +1,13 @@
+name: spec-kemal
+version: 1.0.0
+crystal: '< 2.0.0'
+
+development_dependencies:
+  kemal:
+    github: kemalcr/kemal
+    version: 1.0.0
+
+authors:
+  - Sdogruyol <dogruyolserdar@gmail.com>
+
+license: MIT

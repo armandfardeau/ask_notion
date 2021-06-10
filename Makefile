@@ -26,6 +26,9 @@ deploy:
 	@make build
 	@make push
 
+install:
+	shards install
+
 login:
 	docker login $(REGISTRY_ENDPOINT) -u userdoesnotmatter -p $(TOKEN)
 
@@ -42,4 +45,4 @@ test-server:
 
 spec:
 	@echo "Running tests..."
-	cd src/ && crystal spec
+	KEMAL_ENV=test crystal src/spec/app_spec.cr

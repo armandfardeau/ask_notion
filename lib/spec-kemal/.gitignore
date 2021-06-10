@@ -1,0 +1,5 @@
+/doc/
+/lib/
+/.crystal/
+/.shards/
+shard.lock
