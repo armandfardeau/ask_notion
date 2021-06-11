@@ -1,0 +1,7 @@
+/lib/
+/Makefile
+/.github/
+/.gitignore
+/dist/
+/.yamllint
+/src/spec

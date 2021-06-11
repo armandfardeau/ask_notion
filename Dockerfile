@@ -1,7 +1,6 @@
 FROM crystallang/crystal:latest as builder
 WORKDIR /workdir
-COPY ./shard* .
-COPY ./src ./src
+COPY . .
 RUN shards install
 RUN crystal build --release --static src/app.cr
 EXPOSE 8080
