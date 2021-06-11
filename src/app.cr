@@ -1,11 +1,12 @@
 require "kemal"
 require "crest"
 
-PORT                = ENV.has_key?("PORT") ? ENV["PORT"].to_i : 8080
-NOTION_API_KEY      = ENV.has_key?("NOTION_API_KEY") ? ENV["NOTION_API_KEY"].to_s : ""
-ROCKET_SECRET_TOKEN = ENV.has_key?("ROCKET_SECRET_TOKEN") ? ENV["ROCKET_SECRET_TOKEN"].to_s : ""
+PORT                = ENV["PORT"]?.try(&.to_i) || 8080
+NOTION_API_KEY      = ENV["NOTION_API_KEY"]?.try(&.to_s) || ""
+ROCKET_SECRET_TOKEN = ENV["ROCKET_SECRET_TOKEN"]?.try(&.to_s) || ""
 
 Kemal.config.port = PORT
+Kemal.config.env = "production"
 
 before_all "/" do |env|
   env.response.content_type = "application/json"
@@ -17,7 +18,7 @@ post "/" do |env|
 
   if check_rocket_token(body["token"], ROCKET_SECRET_TOKEN)
     Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
-    halt env, status_code: 401, response: "Unauthorizd"
+    halt env, status_code: 401, response: "Unauthorized"
   else
     # Check notion search for response
     request = search_in_notion(body["text"])
