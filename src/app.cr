@@ -1,6 +1,7 @@
 require "kemal"
 require "crest"
 
+HOST                = ENV["HOST"]?.try(&.to_s) || "0.0.0.0"
 PORT                = ENV["PORT"]?.try(&.to_i) || 8080
 NOTION_API_KEY      = ENV["NOTION_API_KEY"]?.try(&.to_s) || ""
 ROCKET_SECRET_TOKEN = ENV["ROCKET_SECRET_TOKEN"]?.try(&.to_s) || ""
@@ -51,4 +52,7 @@ def search_in_notion(text)
   )
 end
 
-Kemal.run
+Kemal.run do |config|
+  server = config.server.not_nil!
+  server.bind_tcp HOST, PORT, reuse_port: true
+end
