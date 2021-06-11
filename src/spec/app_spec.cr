@@ -3,6 +3,7 @@ require "./spec_helper"
 describe "App" do
   it "renders /" do
     post "/"
+    response.status.should eq 500
     response.body.should eq "Hello World!"
   end
 
