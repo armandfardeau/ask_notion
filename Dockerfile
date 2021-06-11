@@ -1,12 +1,9 @@
-FROM crystallang/crystal:latest as builder
+FROM crystallang/crystal:latest
 WORKDIR /workdir
-COPY . .
+COPY ./shard* .
+COPY ./src ./src
 RUN shards install
 RUN crystal build --release --static src/app.cr
-
-FROM busybox
-WORKDIR /api
 EXPOSE 8080
 ENV PORT 8080
-COPY --from=builder /workdir/app .
 CMD ["./app"]
