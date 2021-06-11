@@ -1,7 +1,7 @@
-.github
-dist
-lib
-src/spec
-.yamllint
-.gitignore
-Makefile
+/lib/
+/Makefile
+/.github/
+/.gitignore
+/dist/
+/.yamllint
+/src/spec
