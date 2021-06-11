@@ -3,6 +3,7 @@ extends: default
 
 ignore: |
   .github
+  lib
 
 rules:
   line-length:

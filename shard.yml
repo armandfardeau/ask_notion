@@ -1,3 +1,4 @@
+---
 name: asknotion
 version: 0.1.0
 
@@ -11,6 +12,8 @@ targets:
 dependencies:
   kemal:
     github: kemalcr/kemal
+  crest:
+    github: mamantoha/crest
 
 
 crystal: 1.0.0
