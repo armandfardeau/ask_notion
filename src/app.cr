@@ -3,11 +3,12 @@ require "crest"
 
 HOST                = ENV["HOST"]?.try(&.to_s) || "0.0.0.0"
 PORT                = ENV["PORT"]?.try(&.to_i) || 8080
+NOTION_ENDPOINT     = ENV["NOTION_ENDPOINT"]?.try(&.to_s) || "https://api.notion.com/v1/search"
 NOTION_API_KEY      = ENV["NOTION_API_KEY"]?.try(&.to_s) || ""
 ROCKET_SECRET_TOKEN = ENV["ROCKET_SECRET_TOKEN"]?.try(&.to_s) || ""
 
+# Configuration
 Kemal.config.port = PORT
-
 Kemal.config.env = "production"
 serve_static false
 
@@ -37,21 +38,25 @@ def check_rocket_token(params_token, env_token)
 end
 
 def search_in_notion(text)
-  Crest::Request.execute(:post,
-    "https://api.notion.com/v1/search",
-    headers: {
-      "Content-Type"   => "application/json",
-      "Notion-Version" => "2021-05-13",
-      "Authorization"  => NOTION_API_KEY,
-    },
-    form: {
-      "query" => text,
-      "sort":    {
-        "direction" => "ascending",
-        "timestamp" => "last_edited_time",
+  begin
+    Crest::Request.execute(:post,
+      NOTION_ENDPOINT,
+      headers: {
+        "Content-Type"   => "application/json",
+        "Notion-Version" => "2021-05-13",
+        "Authorization"  => NOTION_API_KEY,
       },
-    }.to_json
-  )
+      form: {
+        "query" => text,
+        "sort":    {
+          "direction" => "ascending",
+          "timestamp" => "last_edited_time",
+        },
+      }.to_json
+    )
+  rescue ex : Crest::NotFound | Crest::Unauthorized
+    ex.response
+  end
 end
 
 Kemal.run do |config|
