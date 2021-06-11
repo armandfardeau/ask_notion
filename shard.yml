@@ -10,8 +10,6 @@ targets:
     main: src/app.cr
 
 dependencies:
-  kemal:
-    github: kemalcr/kemal
   crest:
     github: mamantoha/crest
 
