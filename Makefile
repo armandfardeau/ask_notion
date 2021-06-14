@@ -2,7 +2,6 @@ PORT := 8080
 REGION := fr-par
 REGISTRY_ENDPOINT := rg.$(REGION).scw.cloud
 REGISTRY_NAMESPACE := osp-internal-tools
-ROCKET_DUMMY_TOKEN := "fqut9gcew2h"
 NOTION_URL := "https://www.notion.so/opensourcepolitics"
 IMAGE_NAME := ask_notion
 VERSION := latest
