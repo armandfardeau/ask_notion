@@ -26,6 +26,8 @@ post "/" do |env|
     Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
     halt env, status_code: 401, response: "Unauthorized"
   else
+    halt env, status_code: 200, response: "tmid provided, doing nothing" if body["tmid"]?
+
     # Check notion search for response
     request = search_in_notion(body["text"])
     room_id = body["channel_id"]
@@ -34,14 +36,17 @@ post "/" do |env|
     results = JSON.parse(request.body)["results"].as_a
 
     if results.empty?
-      #     if empty, create a page and return the link
+      Log.info { "Empty results for #{body["text"]}" }
+      halt env, status_code: 200, response: "Empty response for #{body["text"]}"
     else
       responses = Array(Crest::Response).new
       results.each do |result|
         responses << send_to_rocket(room_id, message_id, message_builder(result))
       end
 
-      responses.map { |response| JSON.parse(response.body) }.to_json
+      returned_responses = responses.map { |response| JSON.parse(response.body) }.to_json
+      Log.info { "Returned_responses: #{returned_responses}" }
+      halt env, status_code: 200, response: returned_responses
     end
   end
 end
