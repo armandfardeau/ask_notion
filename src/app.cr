@@ -51,6 +51,8 @@ def check_rocket_token(params_token, env_token)
 end
 
 def send_to_rocket(room_id, message_id, message)
+  Log.info { message.to_json }
+
   Crest::Request.execute(:post,
     "#{ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
     headers: {
