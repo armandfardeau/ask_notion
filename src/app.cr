@@ -20,7 +20,7 @@ end
 
 post "/" do |env|
   # Get question from rocketchat
-  body = env.params.json["body"].as(Hash(String, JSON::Any))
+  body = env.params.json
 
   if check_rocket_token(body["token"], ROCKET_SECRET_TOKEN)
     Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
