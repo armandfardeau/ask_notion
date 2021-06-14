@@ -15,7 +15,7 @@ module Asknotion
     begin
       body = env.params.json["body"].as(Hash(String, JSON::Any))
 
-      if check_rocket_token(body["token"], Configs::ROCKET_SECRET_TOKEN)
+      if check_rocket_token(body["token"], Config::ROCKET_SECRET_TOKEN)
         Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
         env.response.respond_with_status(HTTP::Status::UNAUTHORIZED, "Unauthorized access detected")
       else
@@ -40,11 +40,11 @@ module Asknotion
   def self.search_in_notion(text)
     begin
       Crest::Request.execute(:post,
-        Configs::NOTION_ENDPOINT,
+        Config::NOTION_ENDPOINT,
         headers: {
           "Content-Type"   => "application/json",
-          "Notion-Version" => Configs::NOTION_API_VERSION,
-          "Authorization"  => Configs::NOTION_API_KEY,
+          "Notion-Version" => Config::NOTION_API_VERSION,
+          "Authorization"  => Config::NOTION_API_KEY,
         },
         form: {
           "query" => text,
@@ -62,5 +62,5 @@ end
 
 Kemal.run do |config|
   server = config.server.not_nil!
-  server.bind_tcp Asknotion::Configs::HOST, Asknotion::Configs::PORT, reuse_port: true
+  server.bind_tcp Asknotion::Config::HOST, Asknotion::Config::PORT, reuse_port: true
 end

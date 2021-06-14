@@ -1,5 +1,5 @@
 module Asknotion
-  module Configs
+  module Config
     HOST                = ENV["HOST"]?.try(&.to_s) || "0.0.0.0"
     PORT                = ENV["PORT"]?.try(&.to_i) || 8080
     NOTION_ENDPOINT     = ENV["NOTION_ENDPOINT"]?.try(&.to_s) || "https://api.notion.com/v1/search"

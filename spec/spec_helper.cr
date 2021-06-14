@@ -1,5 +1,6 @@
 require "spec-kemal"
-require "../app"
+require "../src/app"
+require "../src/config"
 
 def rocket_chat_sample(text = "dummy text")
   {
