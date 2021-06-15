@@ -22,3 +22,6 @@ shards:
   crest:
     git: https://github.com/mamantoha/crest.git
     version: 0.27.0
+  spec-kemal:
+    git: https://github.com/kemalcr/spec-kemal.git
+    version: 1.0.0
