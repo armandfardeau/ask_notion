@@ -137,8 +137,8 @@ def create_notion_page(searched_text)
   )
 end
 
-def page_message_builder(text, id)
-  message_builder(text, id)
+def page_message_builder(text, page)
+  message_builder(text, page["id"].as_s.gsub("-", ""))
 end
 
 def search_message_builder(result)
