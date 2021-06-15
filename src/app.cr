@@ -39,6 +39,9 @@ post "/" do |env|
     request = search_in_notion(searched_text)
 
     results = JSON.parse(request.body)["results"].as_a
+
+    results = clean_up_results(results)
+
     Log.info { "Returning results: #{results}" }
 
     if results.empty?
@@ -143,11 +146,18 @@ def page_message_builder(text, page)
 end
 
 def search_message_builder(result)
-  message_builder(result["properties"]["title"]["title"][0]["plain_text"], result["id"].as_s.gsub("-", ""))
+  pp result
+  text = result["properties"]["title"]["title"][0]["plain_text"]
+  id = result["id"].as_s.gsub("-", "")
+  message_builder(text, id)
 end
 
 def message_builder(text, id)
   {title: text, link: "#{NOTION_URL}/#{id}"}
+end
+
+def clean_up_results(results_arr)
+    results_arr.select{|result| result if result["parent"].try(["database_id"] == PAGE_PARENT_ID}
 end
 
 Kemal.run do |config|
