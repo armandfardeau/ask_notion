@@ -1,6 +1,7 @@
 require "kemal"
 require "crest"
 require "./config"
+require "./core"
 
 module AskNotion
   before_all "/" do |env|
@@ -12,7 +13,7 @@ module AskNotion
       # Get question from rocketchat
       body = env.params.json
 
-      if check_rocket_token(body["token"], Config::ROCKET_SECRET_TOKEN)
+      if !Core.valid_rocket_token?(body["token"].as(String))
         Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
         halt env, status_code: 401, response: "Unauthorized"
       else
@@ -32,12 +33,12 @@ module AskNotion
           page = JSON.parse(page_response.body)
 
           Log.info { "Creating page: #{page}" }
-          response = send_to_rocket(room_id, message_id, page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
+          response = send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
           halt env, status_code: 200, response: JSON.parse(response.body)
         else
           responses = Array(Crest::Response).new
           results.each do |result|
-            responses << send_to_rocket(room_id, message_id, search_message_builder(result))
+            responses << send_to_rocket(room_id, message_id, Core.search_message_builder(result))
           end
 
           returned_responses = responses.map { |response| JSON.parse(response.body) }.to_json
@@ -126,18 +127,6 @@ module AskNotion
         },
       }.to_json
     )
-  end
-
-  def self.page_message_builder(text, page)
-    message_builder(text, page["id"].as_s.gsub("-", ""))
-  end
-
-  def self.search_message_builder(result)
-    message_builder(result["properties"]["title"]["title"][0]["plain_text"], result["id"].as_s.gsub("-", ""))
-  end
-
-  def self.message_builder(text, id)
-    {title: text, link: "#{Config::NOTION_URL}/#{id}"}
   end
 end
 
