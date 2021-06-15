@@ -39,6 +39,7 @@ post "/" do |env|
     request = search_in_notion(searched_text)
 
     results = JSON.parse(request.body)["results"].as_a
+    Log.info { "Returning results: #{results}" }
 
     if results.empty?
       page_response = create_notion_page(searched_text)
