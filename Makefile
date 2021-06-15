@@ -29,7 +29,7 @@ deploy:
 login:
 	docker login $(REGISTRY_ENDPOINT) -u userdoesnotmatter -p $(TOKEN)
 
-spec:
+specs:
 	@echo "Running tests..."
 	KEMAL_ENV=test crystal spec
 
@@ -39,8 +39,5 @@ make test:
 lint:
 	@echo "Linting files..."
 	crystal tool format
-
-test-server:
-	LOCALES_DIR="**/spec/src/locales" crystal run src/app.cr
 
 
