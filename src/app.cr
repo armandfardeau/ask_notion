@@ -87,7 +87,7 @@ module AskNotion
       Config::NOTION_SEARCH_URL,
       headers: {
         "Content-Type"   => "application/json",
-        "Notion-Version" => "2021-05-13",
+        "Notion-Version" => Config::NOTION_API_VERSION,
         "Authorization"  => Config::NOTION_API_KEY,
       },
       form: {
