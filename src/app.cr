@@ -157,7 +157,20 @@ def message_builder(text, id)
 end
 
 def clean_up_results(results_arr)
-    results_arr.select{|result| result if result["parent"].try(["database_id"] == PAGE_PARENT_ID}
+  pp results_arr
+  results_arr.select do |result|
+    if has_parent_id?(result, PAGE_PARENT_ID)
+      result
+    end
+  end
+end
+
+def has_parent_id?(result, parent_id)
+  if result["parent"]? && result["parent"]["page_id"]?
+    result["parent"]["page_id"] == parent_id
+  else
+    false
+  end
 end
 
 Kemal.run do |config|
