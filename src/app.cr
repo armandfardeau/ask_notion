@@ -1,19 +1,7 @@
 require "kemal"
 require "crest"
-
-HOST                 = ENV["HOST"]?.try(&.to_s) || "0.0.0.0"
-PORT                 = ENV["PORT"]?.try(&.to_i) || 8080
-NOTION_API_KEY       = ENV["NOTION_API_KEY"]?.try(&.to_s) || ""
-ROCKET_SECRET_TOKEN  = ENV["ROCKET_SECRET_TOKEN"]?.try(&.to_s) || ""
-NOTION_URL           = ENV["NOTION_URL"]?.try(&.to_s) || ""
-NOTION_SEARCH_URL    = "https://api.notion.com/v1/search"
-NOTION_PAGE_URL      = "https://api.notion.com/v1/pages"
-ROCKET_CHAT_URL      = "https://osp.rocket.chat"
-ROCKET_API_TOKEN     = ENV["ROCKET_API_TOKEN"]?.try(&.to_s) || ""
-ROCKET_API_ID        = ENV["ROCKET_API_ID"]?.try(&.to_s) || ""
-PAGE_PARENT_ID       = "639e6e8d-73ab-45c8-a1b0-bf829d17c5e4"
-CREATED_PAGE_MESSAGE = "Bonjour @here, une question a besoin de votre réponse. Si l'un-e d'entre vous a la réponse, n'hésitez pas à la compléter."
-ENVIRONNEMENT        = ENV["KEMAL_ENV"]?.try(&.to_s) || "production"
+require "./config"
+require "./core"
 
 module AskNotion
   before_all "/" do |env|
@@ -21,13 +9,15 @@ module AskNotion
   end
 
   post "/" do |env|
-    # Get question from rocketchat
-    body = env.params.json
+    begin
+      # Get question from rocketchat
+      body = env.params.json
 
-    if check_rocket_token(body["token"], ROCKET_SECRET_TOKEN)
-      Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
-      halt env, status_code: 401, response: "Unauthorized"
-    else
+      if !Core.valid_rocket_token?(body["token"].as(String))
+        Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
+        halt env, status_code: 401, response: "Unauthorized"
+      end
+
       Log.info { "Tmid provided, doing nothing" } if body["tmid"]?
       halt env, status_code: 200, response: "tmid provided, doing nothing" if body["tmid"]?
 
@@ -40,38 +30,43 @@ module AskNotion
       results = JSON.parse(request.body)["results"].as_a
 
       if results.empty?
+        Log.info { "No results found from Notion" }
         page_response = create_notion_page(searched_text)
         page = JSON.parse(page_response.body)
 
         Log.info { "Creating page: #{page}" }
-        response = send_to_rocket(room_id, message_id, page_message_builder(searched_text, page), CREATED_PAGE_MESSAGE)
+        response = send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
         halt env, status_code: 200, response: JSON.parse(response.body)
       else
+        Log.info { "Results found !" }
         responses = Array(Crest::Response).new
         results.each do |result|
-          responses << send_to_rocket(room_id, message_id, search_message_builder(result))
+          responses << send_to_rocket(room_id, message_id, Core.search_message_builder(result))
         end
 
         returned_responses = responses.map { |response| JSON.parse(response.body) }.to_json
         Log.info { "Returned_responses: #{returned_responses}" }
         halt env, status_code: 200, response: returned_responses
       end
+    rescue ex : JSON::ParseException
+      Log.info { "Request from #{env.request.remote_address} - Body parsing error" }
+      halt env, status_code: 500, response: "Error when parsing body request, please ensure your body request is correct"
+    rescue ex : Exception
+      Log.error { "Request from #{env.request.remote_address} - Unexpected error happened" }
+      Log.error { "Catched exception : #{ex}" }
+      halt env, status_code: 500, response: "Unexpected error happened"
     end
-  end
-
-  def self.check_rocket_token(params_token, env_token)
-    params_token != env_token
   end
 
   def self.send_to_rocket(room_id, message_id, message, text = nil)
     Log.info { message.to_json }
 
     Crest::Request.execute(:post,
-      "#{ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
+      "#{Config::ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
       headers: {
         "Content-Type" => "application/json",
-        "X-Auth-Token" => ROCKET_API_TOKEN,
-        "X-User-Id"    => ROCKET_API_ID,
+        "X-Auth-Token" => Config::ROCKET_API_TOKEN,
+        "X-User-Id"    => Config::ROCKET_API_ID,
       },
       form: {
         "message": {
@@ -92,11 +87,11 @@ module AskNotion
 
   def self.search_in_notion(searched_text)
     Crest::Request.execute(:post,
-      NOTION_SEARCH_URL,
+      Config::NOTION_SEARCH_URL,
       headers: {
         "Content-Type"   => "application/json",
-        "Notion-Version" => "2021-05-13",
-        "Authorization"  => NOTION_API_KEY,
+        "Notion-Version" => Config::NOTION_API_VERSION,
+        "Authorization"  => Config::NOTION_API_KEY,
       },
       form: {
         "query"   => searched_text,
@@ -111,16 +106,16 @@ module AskNotion
 
   def self.create_notion_page(searched_text)
     Crest::Request.execute(:post,
-      NOTION_PAGE_URL,
+      Config::NOTION_PAGE_URL,
       headers: {
         "Content-Type"   => "application/json",
-        "Notion-Version" => "2021-05-13",
-        "Authorization"  => NOTION_API_KEY,
+        "Notion-Version" => Config::NOTION_API_VERSION,
+        "Authorization"  => Config::NOTION_API_KEY,
       },
       form: {
         "parent": {
           "type":    "page_id",
-          "page_id": PAGE_PARENT_ID,
+          "page_id": Config::PAGE_PARENT_ID,
         },
         "properties": {
           "title": [
@@ -135,26 +130,15 @@ module AskNotion
       }.to_json
     )
   end
-
-  def self.page_message_builder(text, page)
-    message_builder(text, page["id"].as_s.gsub("-", ""))
-  end
-
-  def self.search_message_builder(result)
-    message_builder(result["properties"]["title"]["title"][0]["plain_text"], result["id"].as_s.gsub("-", ""))
-  end
-
-  def self.message_builder(text, id)
-    {title: text, link: "#{NOTION_URL}/#{id}"}
-  end
 end
 
-Kemal.config.env = ENVIRONNEMENT
+Kemal.config.env = AskNotion::Config::ENVIRONNEMENT
+serve_static false
 
 if Kemal.config.env == "production"
   Kemal.run do |config|
     server = config.server.not_nil!
-    server.bind_tcp HOST, PORT, reuse_port: true
+    server.bind_tcp AskNotion::Config::HOST, AskNotion::Config::PORT, reuse_port: true
   end
 else
   Kemal.run

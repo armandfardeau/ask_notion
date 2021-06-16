@@ -10,13 +10,14 @@ targets:
     main: src/app.cr
 
 dependencies:
-  spec-kemal:
-    github: kemalcr/spec-kemal
   kemal:
     github: kemalcr/kemal
   crest:
     github: mamantoha/crest
 
+development_dependencies:
+  spec-kemal:
+    github: kemalcr/spec-kemal
 
 crystal: 1.0.0
 

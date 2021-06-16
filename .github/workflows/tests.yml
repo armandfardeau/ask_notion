@@ -17,5 +17,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: oprypin/install-crystal@v1
-      - run: LOCALES_DIR="**/spec/src/locales" crystal run src/app.cr > /dev/null 2>&1 &
-      - run: crystal spec
+      - run: shards install
+      - run: KEMAL_ENV=test SPEC_VERBOSE=1 LOG_LEVEL=error crystal spec
