@@ -14,7 +14,7 @@ module AskNotion
     PAGE_PARENT_ID       = ENV["PAGE_PARENT_ID"]?.try(&.to_s) || "639e6e8d-73ab-45c8-a1b0-bf829d17c5e4"
     CREATED_PAGE_MESSAGE = "Bonjour @here, une question a besoin de votre réponse. Si l'un-e d'entre vous a la réponse, n'hésitez pas à la compléter."
     ENVIRONNEMENT        = ENV["KEMAL_ENV"]?.try(&.to_s) || "production"
-  
+
     def self.set(prod : String | Int32, test : String | Int32 | Nil = nil)
       if ENVIRONNEMENT == "test"
         test

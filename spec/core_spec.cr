@@ -27,33 +27,32 @@ describe "AskNotion::Core" do
     end
   end
 
-
   describe "#message_builder" do
     it "returns a Hash with title and link" do
-       AskNotion::Core.message_builder("A simple text", "123456").should eq({ title: "A simple text", link: "/123456" })
+      AskNotion::Core.message_builder("A simple text", "123456").should eq({title: "A simple text", link: "/123456"})
     end
 
     it "link always begins by NOTION_URL" do
-        hash = AskNotion::Core.message_builder("A simple text", "123456")
-        hash["link"][0].should eq '/'
+      hash = AskNotion::Core.message_builder("A simple text", "123456")
+      hash["link"][0].should eq '/'
     end
   end
   describe "#page_message_builder" do
-#it "returns a Hash with title and link" do
-#  text = "Lorem ipsum dolor"
-#  page = {
-##"id": "1234-4567-7891-1234"
-#  }
-#  AskNotion::Core.page_message_builder(text, page).should eq({ title: "Lorem ipsum dolor", link: "/1234456778911234" })
-#end
+    # it "returns a Hash with title and link" do
+    #  text = "Lorem ipsum dolor"
+    #  page = {
+    # #"id": "1234-4567-7891-1234"
+    #  }
+    #  AskNotion::Core.page_message_builder(text, page).should eq({ title: "Lorem ipsum dolor", link: "/1234456778911234" })
+    # end
   end
-    describe "#search_message_builder" do
-  #it "returns a Hash with title and link" do
-  #  text = "Lorem ipsum dolor"
-  #  page = {
-  ##"id": "1234-4567-7891-1234"
-  #  }
-  #  AskNotion::Core.page_message_builder(text, page).should eq({ title: "Lorem ipsum dolor", link: "/1234456778911234" })
-  #end
-    end
+  describe "#search_message_builder" do
+    # it "returns a Hash with title and link" do
+    #  text = "Lorem ipsum dolor"
+    #  page = {
+    # #"id": "1234-4567-7891-1234"
+    #  }
+    #  AskNotion::Core.page_message_builder(text, page).should eq({ title: "Lorem ipsum dolor", link: "/1234456778911234" })
+    # end
+  end
 end

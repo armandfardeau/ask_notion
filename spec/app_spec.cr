@@ -10,4 +10,15 @@ describe "AskNotion" do
       response.body.should eq "Error when parsing body request, please ensure your body request is correct"
     end
   end
+
+  context "when body is valid but not token" do
+    it "returns unauthorized response" do
+      token = "dummy_token_unauthorized"
+      post("/", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: rocket_chat_sample("dummy text", token).to_s)
+
+      response.content_type.should eq "application/json"
+      response.status_code.should eq 401
+      response.body.should eq "Unauthorized"
+    end
+  end
 end
