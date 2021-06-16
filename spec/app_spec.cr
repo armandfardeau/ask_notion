@@ -16,22 +16,22 @@ describe "AskNotion" do
       it "returns unauthorized response" do
         token = "dummy_token_unauthorized"
         post("/", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: rocket_chat_sample("dummy text", token).to_s)
-  
+
         response.content_type.should eq "application/json"
         response.status_code.should eq 401
         response.body.should eq "Unauthorized"
-      end      
+      end
     end
 
     context "and tmid is provided" do
       it "returns 200 status code" do
         token = ""
         post("/", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: rocket_chat_sample("dummy text", token).to_s)
-  
+
         response.content_type.should eq "application/json"
         response.status_code.should eq 200
         response.body.should eq "tmid provided, doing nothing"
-      end      
+      end
     end
   end
 end
