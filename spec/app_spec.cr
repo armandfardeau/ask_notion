@@ -51,19 +51,18 @@ describe "AskNotion" do
         response.status_code.should eq 200
         response.body.should eq "{\"results\" => [\"dummy\"], \"id\" => \"dummy_id\"}"
       end
+    end
+    context "when request is unauthorized" do
+      it "returns no responses" do
+        web_mock_notion_search
+        web_mock_notion_pages
+        WebMock.stub(:post, "https://osp.rocket.chat/api/v1/chat.sendMessage")
+          .with(body: "{\"message\":{\"msg\":\"#{AskNotion::Config::CREATED_PAGE_MESSAGE}\",\"rid\":\"AzertYuiop4\",\"tmid\":\"dummy_message_id_1\",\"alias\":\"AskNotion\",\"avatar\":\"https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png\",\"attachments\":[{\"title\":\"dummy text\",\"title_link\":\"/dummy_id\",\"collapsed\":false}]}}", headers: {"Content-Type" => "application/json", "X-Auth-Token" => AskNotion::Config::ROCKET_SECRET_TOKEN, "X-User-Id" => AskNotion::Config::ROCKET_API_ID, "Content-Length" => "381", "Host" => "osp.rocket.chat", "User-Agent" => "Crest/0.27.0 (Crystal/1.0.0)"})
+          .to_return(status: 401)
 
-      context "when request is unauthorized" do
-        it "returns no responses" do
-          web_mock_notion_search
-          web_mock_notion_pages
-          WebMock.stub(:post, "https://osp.rocket.chat/api/v1/chat.sendMessage")
-            .with(body: "{\"message\":{\"msg\":\"#{AskNotion::Config::CREATED_PAGE_MESSAGE}\",\"rid\":\"AzertYuiop4\",\"tmid\":\"dummy_message_id_1\",\"alias\":\"AskNotion\",\"avatar\":\"https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png\",\"attachments\":[{\"title\":\"dummy text\",\"title_link\":\"/dummy_id\",\"collapsed\":false}]}}", headers: {"Content-Type" => "application/json", "X-Auth-Token" => AskNotion::Config::ROCKET_SECRET_TOKEN, "X-User-Id" => AskNotion::Config::ROCKET_API_ID, "Content-Length" => "381", "Host" => "osp.rocket.chat", "User-Agent" => "Crest/0.27.0 (Crystal/1.0.0)"})
-            .to_return(status: 401)
-
-          response.content_type.should eq "application/json"
-          response.status_code.should eq 200
-          response.body.should eq "No response sent"
-        end
+        response.content_type.should eq "application/json"
+        response.status_code.should eq 200
+        response.body.should eq "No response sent"
       end
     end
   end
