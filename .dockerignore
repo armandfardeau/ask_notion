@@ -4,4 +4,4 @@
 /.gitignore
 /dist/
 /.yamllint
-/src/spec
+spec/
