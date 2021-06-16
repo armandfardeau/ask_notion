@@ -37,7 +37,7 @@ module AskNotion
 
         Log.info { "Created page: #{page}" }
 
-        response = send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
+        response = Core.send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
         if !response.nil? && !response.body.nil?
           halt env, status_code: 200, response: JSON.parse(response.body)
         end
@@ -49,7 +49,7 @@ module AskNotion
       responses = Array(Crest::Response).new
 
       results.each do |result|
-        sent = send_to_rocket(room_id, message_id, Core.search_message_builder(result))
+        sent = Core.send_to_rocket(room_id, message_id, Core.search_message_builder(result))
 
         responses << sent if !sent.nil?
       end
@@ -65,39 +65,6 @@ module AskNotion
       Log.error { "Request from #{env.request.remote_address} - Unexpected error happened" }
       Log.error { "Catched exception : #{ex}" }
       halt env, status_code: 500, response: "Unexpected error happened"
-    end
-  end
-
-  def self.send_to_rocket(room_id, message_id, message, text = nil)
-    Log.info { message.to_json }
-
-    begin
-      Crest::Request.execute(:post,
-        "#{Config::ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
-        headers: {
-          "Content-Type" => "application/json",
-          "X-Auth-Token" => Config::ROCKET_API_TOKEN,
-          "X-User-Id"    => Config::ROCKET_API_ID,
-        },
-        form: {
-          "message": {
-            "msg":         text,
-            "rid":         room_id,
-            "tmid":        message_id,
-            "alias":       "AskNotion",
-            "avatar":      "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
-            "attachments": [{
-              "title":      message["title"],
-              "title_link": message["link"],
-              "collapsed":  false,
-            }],
-          },
-        }.to_json
-      )
-    rescue ex : Exception
-      Log.error { "Error while performing response to Rocket chat" }
-      Log.error { "Catched exception : #{ex}" }
-      return nil
     end
   end
 
