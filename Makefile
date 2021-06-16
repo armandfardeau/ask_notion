@@ -31,7 +31,7 @@ login:
 
 specs:
 	@echo "Running tests..."
-	KEMAL_ENV=test crystal spec
+	KEMAL_ENV=test SPEC_VERBOSE=1 LOG_LEVEL=error crystal spec
 
 make test:
 	curl localhost:$(PORT)
