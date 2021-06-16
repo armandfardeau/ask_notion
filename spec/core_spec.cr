@@ -38,4 +38,22 @@ describe "AskNotion::Core" do
         hash["link"][0].should eq '/'
     end
   end
+  describe "#page_message_builder" do
+#it "returns a Hash with title and link" do
+#  text = "Lorem ipsum dolor"
+#  page = {
+##"id": "1234-4567-7891-1234"
+#  }
+#  AskNotion::Core.page_message_builder(text, page).should eq({ title: "Lorem ipsum dolor", link: "/1234456778911234" })
+#end
+  end
+    describe "#search_message_builder" do
+  #it "returns a Hash with title and link" do
+  #  text = "Lorem ipsum dolor"
+  #  page = {
+  ##"id": "1234-4567-7891-1234"
+  #  }
+  #  AskNotion::Core.page_message_builder(text, page).should eq({ title: "Lorem ipsum dolor", link: "/1234456778911234" })
+  #end
+    end
 end
