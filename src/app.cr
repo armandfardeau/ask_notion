@@ -30,6 +30,7 @@ module AskNotion
       results = JSON.parse(request.body)["results"].as_a
 
       if results.empty?
+        Log.info { "No results found from Notion" }
         page_response = create_notion_page(searched_text)
         page = JSON.parse(page_response.body)
 
@@ -37,6 +38,7 @@ module AskNotion
         response = send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
         halt env, status_code: 200, response: JSON.parse(response.body)
       else
+        Log.info { "Results found !" }
         responses = Array(Crest::Response).new
         results.each do |result|
           responses << send_to_rocket(room_id, message_id, Core.search_message_builder(result))
@@ -51,7 +53,7 @@ module AskNotion
       halt env, status_code: 500, response: "Error when parsing body request, please ensure your body request is correct"
     rescue ex : Exception
       Log.error { "Request from #{env.request.remote_address} - Unexpected error happened" }
-      Log.error { ex }
+      Log.error { "Catched exception : #{ex}" }
       halt env, status_code: 500, response: "Unexpected error happened"
     end
   end
