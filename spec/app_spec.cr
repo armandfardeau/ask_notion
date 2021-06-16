@@ -50,7 +50,7 @@ describe "AskNotion" do
         response.content_type.should eq "application/json"
         response.status_code.should eq 200
         response.body.should eq "{\"results\" => [\"dummy\"], \"id\" => \"dummy_id\"}"
-        Webmock.reset
+        WebMock.reset
       end
     end
     context "when request is unauthorized" do
@@ -64,7 +64,7 @@ describe "AskNotion" do
         response.content_type.should eq "application/json"
         response.status_code.should eq 200
         response.body.should eq "No response sent"
-        Webmock.reset
+        WebMock.reset
       end
     end
   end
