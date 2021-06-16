@@ -25,31 +25,41 @@ module AskNotion
       room_id = body["channel_id"]
       message_id = body["message_id"]
       searched_text = body["text"]
+
       request = search_in_notion(searched_text)
 
       results = JSON.parse(request.body)["results"].as_a
 
       if results.empty?
-        Log.info { "No results found from Notion" }
+        Log.info { "No results found from Notion, creating page..." }
         page_response = create_notion_page(searched_text)
         page = JSON.parse(page_response.body)
 
-        Log.info { "Creating page: #{page}" }
+        Log.info { "Created page: #{page}" }
+
         response = send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
-        halt env, status_code: 200, response: JSON.parse(response.body)
-      else
-        Log.info { "Results found !" }
-        responses = Array(Crest::Response).new
-        results.each do |result|
-          responses << send_to_rocket(room_id, message_id, Core.search_message_builder(result))
+        if !response.nil? && !response.body.nil?
+          halt env, status_code: 200, response: JSON.parse(response.body)
         end
 
-        returned_responses = responses.map { |response| JSON.parse(response.body) }.to_json
-        Log.info { "Returned_responses: #{returned_responses}" }
-        halt env, status_code: 200, response: returned_responses
+        halt env, status_code: 200, response: "No response sent"
       end
+
+      Log.info { "#{results.size} results found !" }
+      responses = Array(Crest::Response).new
+
+      results.each do |result|
+        sent = send_to_rocket(room_id, message_id, Core.search_message_builder(result))
+
+        responses << sent if !sent.nil?
+      end
+
+      returned_responses = responses.map { |response| JSON.parse(response.body) }.to_json
+      Log.info { "Returned_responses: #{returned_responses}" }
+      halt env, status_code: 200, response: returned_responses
     rescue ex : JSON::ParseException
-      Log.info { "Request from #{env.request.remote_address} - Body parsing error" }
+      Log.error { "Request from #{env.request.remote_address} - Body parsing error" }
+      Log.error { "Catched exception : #{ex}" }
       halt env, status_code: 500, response: "Error when parsing body request, please ensure your body request is correct"
     rescue ex : Exception
       Log.error { "Request from #{env.request.remote_address} - Unexpected error happened" }
@@ -61,28 +71,34 @@ module AskNotion
   def self.send_to_rocket(room_id, message_id, message, text = nil)
     Log.info { message.to_json }
 
-    Crest::Request.execute(:post,
-      "#{Config::ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
-      headers: {
-        "Content-Type" => "application/json",
-        "X-Auth-Token" => Config::ROCKET_API_TOKEN,
-        "X-User-Id"    => Config::ROCKET_API_ID,
-      },
-      form: {
-        "message": {
-          "msg":         text,
-          "rid":         room_id,
-          "tmid":        message_id,
-          "alias":       "AskNotion",
-          "avatar":      "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
-          "attachments": [{
-            "title":      message["title"],
-            "title_link": message["link"],
-            "collapsed":  false,
-          }],
+    begin
+      Crest::Request.execute(:post,
+        "#{Config::ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
+        headers: {
+          "Content-Type" => "application/json",
+          "X-Auth-Token" => Config::ROCKET_API_TOKEN,
+          "X-User-Id"    => Config::ROCKET_API_ID,
         },
-      }.to_json
-    )
+        form: {
+          "message": {
+            "msg":         text,
+            "rid":         room_id,
+            "tmid":        message_id,
+            "alias":       "AskNotion",
+            "avatar":      "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
+            "attachments": [{
+              "title":      message["title"],
+              "title_link": message["link"],
+              "collapsed":  false,
+            }],
+          },
+        }.to_json
+      )
+    rescue ex : Exception
+      Log.error { "Error while performing response to Rocket chat" }
+      Log.error { "Catched exception : #{ex}" }
+      return nil
+    end
   end
 
   def self.search_in_notion(searched_text)

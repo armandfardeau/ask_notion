@@ -1,7 +1,7 @@
 module AskNotion
   module Core
     # Ensure ROCKET_CHAT_TOKEN and given token are equals
-    def self.valid_rocket_token?(params_token : String | Nil, token : String = AskNotion::Config::ROCKET_API_TOKEN)
+    def self.valid_rocket_token?(params_token : String | Nil, token : String = AskNotion::Config::ROCKET_SECRET_TOKEN)
       params_token === token
     end
 
