@@ -11,7 +11,6 @@ NOTION_PAGE_URL      = "https://api.notion.com/v1/pages"
 ROCKET_CHAT_URL      = "https://osp.rocket.chat"
 ROCKET_API_TOKEN     = ENV["ROCKET_API_TOKEN"]?.try(&.to_s) || ""
 ROCKET_API_ID        = ENV["ROCKET_API_ID"]?.try(&.to_s) || ""
-WIKI_PAGE_ID         = "4df27551-820f-49ef-838d-cf2047110f47"
 FAQ_PAGE_ID          = "639e6e8d-73ab-45c8-a1b0-bf829d17c5e4"
 CREATED_PAGE_MESSAGE = "Bonjour @here, une question a besoin de votre réponse. Si l'un-e d'entre vous a la réponse, n'hésitez pas à la compléter."
 
@@ -40,8 +39,6 @@ post "/" do |env|
     request = search_in_notion(searched_text)
 
     results = JSON.parse(request.body)["results"].as_a
-
-    results = clean_up_results(results)
 
     Log.info { "Returning results: #{results}" }
 
@@ -155,23 +152,6 @@ end
 
 def message_builder(text, id)
   {title: text, link: "#{NOTION_URL}/#{id}"}
-end
-
-def clean_up_results(results_arr)
-  pp results_arr
-  results_arr.select do |result|
-    if has_parent_id?(result, WIKI_PAGE_ID)
-      result
-    end
-  end
-end
-
-def has_parent_id?(result, parent_id)
-  if result["parent"]? && result["parent"]["page_id"]?
-    result["parent"]["page_id"] == parent_id
-  else
-    false
-  end
 end
 
 Kemal.run do |config|
