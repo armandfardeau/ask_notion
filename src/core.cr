@@ -116,5 +116,13 @@ module AskNotion
         false
       end
     end
+
+    def notion_results(content)
+      return nil if content.nil?
+
+      hash = JSON.parse(content)
+      hash["results"].as_a unless hash["results"]?.nil?
+    end
+
   end
 end

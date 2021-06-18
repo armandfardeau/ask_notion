@@ -27,35 +27,32 @@ module AskNotion
       end
 
       # Check notion search for response
-      room_id = body["channel_id"]
-      message_id = body["message_id"]
-      searched_text = body["text"]
+      data = {
+        "room_id": body["channel_id"]?,
+        "message_id": body["message_id"]?,
+        "searched_text": body["text"]?
+      }
 
-      request = search_in_notion(searched_text)
-
-      results = JSON.parse(request.body)["results"].as_a
-      # results = clean_up_results(results)
+      request = search_in_notion(data["searched_text"])
+      results = notion_results(request.body)
+      #results = sanitize_results(data, results)
 
       Log.info { "Returning results: #{results}" }
-      if results.empty?
-        Log.info { "No results found from Notion, creating page..." }
-        page_response = create_notion_page(searched_text)
-        page = JSON.parse(page_response.body)
-
-        Log.info { "Created page: #{page}" }
-
-        response = send_to_rocket(room_id, message_id, page_message_builder(searched_text, page), CREATED_PAGE_MESSAGE)
-        if !response.nil? && !response.body.nil?
-          halt env, status_code: 200, response: JSON.parse(response.body)
+      if results.nil? || results.empty?
+        create_new_page(data) do |page|
+          response = send_to_rocket(data["room_id"], data["message_id"], page_message_builder(data["searched_text"], page), CREATED_PAGE_MESSAGE)
+          if !response.nil? && !response.body.nil?
+            halt env, status_code: 200, response: JSON.parse(response.body)
+          end
+      
+          halt env, status_code: 200, response: "No response sent"
         end
-
-        halt env, status_code: 200, response: "No response sent"
       end
 
-      Log.info { "#{results.size} results found !" }
+      Log.info { "#{results.not_nil!.size} results found !" }
       responses = Array(Crest::Response).new
-      results.each do |result|
-        sent = send_to_rocket(room_id, message_id, search_message_builder(result))
+      results.not_nil!.each do |result|
+        sent = send_to_rocket(data["room_id"], data["message_id"], search_message_builder(result))
 
         responses << sent if !sent.nil?
       end
@@ -72,6 +69,16 @@ module AskNotion
       Log.error { "Catched exception : #{ex}" }
       halt env, status_code: 500, response: "Unexpected error happened"
     end
+  end
+
+  def self.create_new_page(data, &block)
+    Log.info { "No results found from Notion, creating page..." }
+    page_response = create_notion_page(data["searched_text"])
+    page = JSON.parse(page_response.body)
+
+    Log.info { "Created page: #{page}" }
+
+    yield page
   end
 end
 
