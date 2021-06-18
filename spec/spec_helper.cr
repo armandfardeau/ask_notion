@@ -1,11 +1,13 @@
 require "spec-kemal"
 require "log"
+require "webmock"
+
 require "../src/app"
 require "../src/config"
 require "../src/core"
 
-def rocket_chat_sample(text : String = "dummy text", token : String = "dummy_token")
-  {
+def rocket_chat_sample(text : String = "dummy text", token : String = "dummy_token", tmid : String | Nil = "azertyuiop1")
+  sample = {
     "token"        => token,
     "bot"          => false,
     "channel_id"   => "AzertYuiop4",
@@ -16,6 +18,7 @@ def rocket_chat_sample(text : String = "dummy text", token : String = "dummy_tok
     "user_name"    => "user_name",
     "text"         => text,
     "siteUrl"      => "https://dummy.host.com",
-    "tmid"         => "azertyuiop1",
-  }.to_json
+  }
+  sample["tmid"] = tmid if !tmid.nil?
+  sample.to_json
 end
