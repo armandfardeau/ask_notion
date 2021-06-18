@@ -31,7 +31,7 @@ module AskNotion
       request = Core.search_in_notion(searched_text)
 
       results = JSON.parse(request.body)["results"].as_a
-      results = Core.clean_up_results(results)
+      #results = Core.clean_up_results(results)
 
       Log.info { "Returning results: #{results}" }
       if results.empty?
