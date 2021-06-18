@@ -90,7 +90,7 @@ module AskNotion
         },
         form: {
           "query"   => searched_text,
-          "page_size": 5,
+          "page_size": AskNotion::Config::NOTION_PAGE_SIZE,
           "sort":      {
             "direction" => "ascending",
             "timestamp" => "last_edited_time",
