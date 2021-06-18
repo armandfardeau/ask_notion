@@ -16,7 +16,13 @@ module AskNotion
     end
 
     def search_message_builder(result)
-      text = result["properties"]["title"]["title"][0]["plain_text"]
+      text = ""
+      if result["parent"]["type"] == "page_id"
+        text = result["properties"]["title"]["title"][0]["plain_text"]
+      elsif result["parent"]["type"] == "database_id"
+        text = result["properties"]["Name"]["title"][0]["plain_text"]
+      end
+
       id = result["id"].as_s.gsub("-", "")
       message_builder(text, id)
     end
