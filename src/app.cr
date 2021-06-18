@@ -11,7 +11,8 @@ NOTION_PAGE_URL      = "https://api.notion.com/v1/pages"
 ROCKET_CHAT_URL      = "https://osp.rocket.chat"
 ROCKET_API_TOKEN     = ENV["ROCKET_API_TOKEN"]?.try(&.to_s) || ""
 ROCKET_API_ID        = ENV["ROCKET_API_ID"]?.try(&.to_s) || ""
-PAGE_PARENT_ID       = "639e6e8d-73ab-45c8-a1b0-bf829d17c5e4"
+WIKI_PAGE_ID         = "4df27551-820f-49ef-838d-cf2047110f47"
+FAQ_PAGE_ID          = "639e6e8d-73ab-45c8-a1b0-bf829d17c5e4"
 CREATED_PAGE_MESSAGE = "Bonjour @here, une question a besoin de votre réponse. Si l'un-e d'entre vous a la réponse, n'hésitez pas à la compléter."
 
 Kemal.config.port = PORT
@@ -125,7 +126,7 @@ def create_notion_page(searched_text)
     form: {
       "parent": {
         "type":    "page_id",
-        "page_id": PAGE_PARENT_ID,
+        "page_id": FAQ_PAGE_ID,
       },
       "properties": {
         "title": [
@@ -159,7 +160,7 @@ end
 def clean_up_results(results_arr)
   pp results_arr
   results_arr.select do |result|
-    if has_parent_id?(result, PAGE_PARENT_ID)
+    if has_parent_id?(result, WIKI_PAGE_ID)
       result
     end
   end
