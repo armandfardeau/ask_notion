@@ -4,6 +4,7 @@ require "./config"
 require "./core"
 
 include AskNotion::Config
+include AskNotion::Core
 
 module AskNotion
   before_all "/" do |env|
@@ -15,7 +16,7 @@ module AskNotion
       # Get question from rocketchat
       body = env.params.json
 
-      if !Core.valid_rocket_token?(body["token"].as(String))
+      if !valid_rocket_token?(body["token"].as(String))
         Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
         halt env, status_code: 401, response: "Unauthorized"
       end
@@ -30,20 +31,20 @@ module AskNotion
       message_id = body["message_id"]
       searched_text = body["text"]
 
-      request = Core.search_in_notion(searched_text)
+      request = search_in_notion(searched_text)
 
       results = JSON.parse(request.body)["results"].as_a
-      # results = Core.clean_up_results(results)
+      # results = clean_up_results(results)
 
       Log.info { "Returning results: #{results}" }
       if results.empty?
         Log.info { "No results found from Notion, creating page..." }
-        page_response = Core.create_notion_page(searched_text)
+        page_response = create_notion_page(searched_text)
         page = JSON.parse(page_response.body)
 
         Log.info { "Created page: #{page}" }
 
-        response = Core.send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), CREATED_PAGE_MESSAGE)
+        response = send_to_rocket(room_id, message_id, page_message_builder(searched_text, page), CREATED_PAGE_MESSAGE)
         if !response.nil? && !response.body.nil?
           halt env, status_code: 200, response: JSON.parse(response.body)
         end
@@ -54,7 +55,7 @@ module AskNotion
       Log.info { "#{results.size} results found !" }
       responses = Array(Crest::Response).new
       results.each do |result|
-        sent = Core.send_to_rocket(room_id, message_id, Core.search_message_builder(result))
+        sent = send_to_rocket(room_id, message_id, search_message_builder(result))
 
         responses << sent if !sent.nil?
       end

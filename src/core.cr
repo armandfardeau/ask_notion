@@ -1,26 +1,27 @@
 module AskNotion
   module Core
+    extend self
+
     # Ensure ROCKET_CHAT_TOKEN and given token are equals
-    def self.valid_rocket_token?(params_token : String | Nil, token : String = ROCKET_SECRET_TOKEN)
+    def valid_rocket_token?(params_token : String | Nil, token : String = ROCKET_SECRET_TOKEN)
       params_token === token
     end
 
-    def self.message_builder(text, id)
+    def message_builder(text, id)
       {title: text, link: "#{NOTION_URL}/#{id}"}
     end
 
-    def self.page_message_builder(text, page)
+    def page_message_builder(text, page)
       message_builder(text, page["id"].as_s.gsub("-", ""))
     end
 
-    def self.search_message_builder(result)
-      pp result
+    def search_message_builder(result)
       text = result["properties"]["title"]["title"][0]["plain_text"]
       id = result["id"].as_s.gsub("-", "")
       message_builder(text, id)
     end
 
-    def self.send_to_rocket(room_id, message_id, message, text = nil)
+    def send_to_rocket(room_id, message_id, message, text = nil)
       Log.info { message.to_json }
 
       begin
@@ -53,7 +54,7 @@ module AskNotion
       end
     end
 
-    def self.create_notion_page(searched_text)
+    def create_notion_page(searched_text)
       Crest::Request.execute(:post,
         NOTION_PAGE_URL,
         headers: {
@@ -80,7 +81,7 @@ module AskNotion
       )
     end
 
-    def self.search_in_notion(searched_text)
+    def search_in_notion(searched_text)
       Crest::Request.execute(:post,
         NOTION_SEARCH_URL,
         headers: {
@@ -99,7 +100,7 @@ module AskNotion
       )
     end
 
-    def self.clean_up_results(results_arr)
+    def clean_up_results(results_arr)
       pp results_arr
       results_arr.select do |result|
         if has_parent_id?(result, WIKI_PAGE_ID)
@@ -108,7 +109,7 @@ module AskNotion
       end
     end
 
-    def self.has_parent_id?(result, parent_id)
+    def has_parent_id?(result, parent_id)
       if result["parent"]? && result["parent"]["page_id"]?
         result["parent"]["page_id"] == parent_id
       else
