@@ -3,6 +3,8 @@ require "crest"
 require "./config"
 require "./core"
 
+include AskNotion::Config
+
 module AskNotion
   before_all "/" do |env|
     env.response.content_type = "application/json"
@@ -41,7 +43,7 @@ module AskNotion
 
         Log.info { "Created page: #{page}" }
 
-        response = Core.send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
+        response = Core.send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), CREATED_PAGE_MESSAGE)
         if !response.nil? && !response.body.nil?
           halt env, status_code: 200, response: JSON.parse(response.body)
         end
@@ -72,13 +74,13 @@ module AskNotion
   end
 end
 
-Kemal.config.env = AskNotion::Config::ENVIRONNEMENT
+Kemal.config.env = ENVIRONNEMENT
 serve_static false
 
 if Kemal.config.env == "production"
   Kemal.run do |config|
     server = config.server.not_nil!
-    server.bind_tcp AskNotion::Config::HOST, AskNotion::Config::PORT, reuse_port: true
+    server.bind_tcp HOST, PORT, reuse_port: true
   end
 else
   Kemal.run

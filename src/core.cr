@@ -1,12 +1,12 @@
 module AskNotion
   module Core
     # Ensure ROCKET_CHAT_TOKEN and given token are equals
-    def self.valid_rocket_token?(params_token : String | Nil, token : String = AskNotion::Config::ROCKET_SECRET_TOKEN)
+    def self.valid_rocket_token?(params_token : String | Nil, token : String = ROCKET_SECRET_TOKEN)
       params_token === token
     end
 
     def self.message_builder(text, id)
-      {title: text, link: "#{AskNotion::Config::NOTION_URL}/#{id}"}
+      {title: text, link: "#{NOTION_URL}/#{id}"}
     end
 
     def self.page_message_builder(text, page)
@@ -25,11 +25,11 @@ module AskNotion
 
       begin
         Crest::Request.execute(:post,
-          "#{AskNotion::Config::ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
+          "#{ROCKET_CHAT_URL}/api/v1/chat.sendMessage",
           headers: {
             "Content-Type" => "application/json",
-            "X-Auth-Token" => AskNotion::Config::ROCKET_API_TOKEN,
-            "X-User-Id"    => AskNotion::Config::ROCKET_API_ID,
+            "X-Auth-Token" => ROCKET_API_TOKEN,
+            "X-User-Id"    => ROCKET_API_ID,
           },
           form: {
             "message": {
@@ -55,16 +55,16 @@ module AskNotion
 
     def self.create_notion_page(searched_text)
       Crest::Request.execute(:post,
-        AskNotion::Config::NOTION_PAGE_URL,
+        NOTION_PAGE_URL,
         headers: {
           "Content-Type"   => "application/json",
-          "Notion-Version" => AskNotion::Config::NOTION_API_VERSION,
-          "Authorization"  => AskNotion::Config::NOTION_API_KEY,
+          "Notion-Version" => NOTION_API_VERSION,
+          "Authorization"  => NOTION_API_KEY,
         },
         form: {
           "parent": {
             "type":    "page_id",
-            "page_id": AskNotion::Config::FAQ_PAGE_ID,
+            "page_id": FAQ_PAGE_ID,
           },
           "properties": {
             "title": [
@@ -82,15 +82,15 @@ module AskNotion
 
     def self.search_in_notion(searched_text)
       Crest::Request.execute(:post,
-        AskNotion::Config::NOTION_SEARCH_URL,
+        NOTION_SEARCH_URL,
         headers: {
           "Content-Type"   => "application/json",
-          "Notion-Version" => AskNotion::Config::NOTION_API_VERSION,
-          "Authorization"  => AskNotion::Config::NOTION_API_KEY,
+          "Notion-Version" => NOTION_API_VERSION,
+          "Authorization"  => NOTION_API_KEY,
         },
         form: {
           "query"   => searched_text,
-          "page_size": AskNotion::Config::NOTION_PAGE_SIZE,
+          "page_size": NOTION_PAGE_SIZE,
           "sort":      {
             "direction" => "ascending",
             "timestamp" => "last_edited_time",
@@ -102,7 +102,7 @@ module AskNotion
     def self.clean_up_results(results_arr)
       pp results_arr
       results_arr.select do |result|
-        if has_parent_id?(result, AskNotion::Config::WIKI_PAGE_ID)
+        if has_parent_id?(result, WIKI_PAGE_ID)
           result
         end
       end
