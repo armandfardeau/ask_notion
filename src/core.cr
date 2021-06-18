@@ -14,7 +14,10 @@ module AskNotion
     end
 
     def self.search_message_builder(result)
-      message_builder(result["properties"]["title"]["title"][0]["plain_text"], result["id"].as_s.gsub("-", ""))
+      pp result
+      text = result["properties"]["title"]["title"][0]["plain_text"]
+      id = result["id"].as_s.gsub("-", "")
+      message_builder(text, id)
     end
 
     def self.send_to_rocket(room_id, message_id, message, text = nil)
@@ -47,6 +50,69 @@ module AskNotion
         Log.error { "Error while performing response to Rocket chat" }
         Log.error { "Catched exception : #{ex}" }
         return nil
+      end
+    end
+
+    def self.create_notion_page(searched_text)
+      Crest::Request.execute(:post,
+        AskNotion::Config::NOTION_PAGE_URL,
+        headers: {
+          "Content-Type"   => "application/json",
+          "Notion-Version" => AskNotion::Config::NOTION_API_VERSION,
+          "Authorization"  => AskNotion::Config::NOTION_API_KEY,
+        },
+        form: {
+          "parent": {
+            "type":    "page_id",
+            "page_id": AskNotion::Config::FAQ_PAGE_ID,
+          },
+          "properties": {
+            "title": [
+              {
+                "type": "text",
+                "text": {
+                  "content": searched_text,
+                },
+              },
+            ],
+          },
+        }.to_json
+      )
+    end
+
+    def self.search_in_notion(searched_text)
+      Crest::Request.execute(:post,
+        AskNotion::Config::NOTION_SEARCH_URL,
+        headers: {
+          "Content-Type"   => "application/json",
+          "Notion-Version" => AskNotion::Config::NOTION_API_VERSION,
+          "Authorization"  => AskNotion::Config::NOTION_API_KEY,
+        },
+        form: {
+          "query"   => searched_text,
+          "page_size": 5,
+          "sort":      {
+            "direction" => "ascending",
+            "timestamp" => "last_edited_time",
+          },
+        }.to_json
+      )
+    end
+
+    def self.clean_up_results(results_arr)
+      pp results_arr
+      results_arr.select do |result|
+        if has_parent_id?(result, AskNotion::Config::WIKI_PAGE_ID)
+          result
+        end
+      end
+    end
+
+    def self.has_parent_id?(result, parent_id)
+      if result["parent"]? && result["parent"]["page_id"]?
+        result["parent"]["page_id"] == parent_id
+      else
+        false
       end
     end
   end

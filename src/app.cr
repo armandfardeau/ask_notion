@@ -18,21 +18,25 @@ module AskNotion
         halt env, status_code: 401, response: "Unauthorized"
       end
 
-      Log.info { "Tmid provided, doing nothing" } if body["tmid"]?
-      halt env, status_code: 200, response: "tmid provided, doing nothing" if body["tmid"]?
+      if body["tmid"]?
+        Log.info { "Tmid provided, doing nothing" }
+        halt env, status_code: 200, response: "tmid provided, doing nothing"
+      end
 
       # Check notion search for response
       room_id = body["channel_id"]
       message_id = body["message_id"]
       searched_text = body["text"]
 
-      request = search_in_notion(searched_text)
+      request = Core.search_in_notion(searched_text)
 
       results = JSON.parse(request.body)["results"].as_a
+      results = Core.clean_up_results(results)
 
+      Log.info { "Returning results: #{results}" }
       if results.empty?
         Log.info { "No results found from Notion, creating page..." }
-        page_response = create_notion_page(searched_text)
+        page_response = Core.create_notion_page(searched_text)
         page = JSON.parse(page_response.body)
 
         Log.info { "Created page: #{page}" }
@@ -47,7 +51,6 @@ module AskNotion
 
       Log.info { "#{results.size} results found !" }
       responses = Array(Crest::Response).new
-
       results.each do |result|
         sent = Core.send_to_rocket(room_id, message_id, Core.search_message_builder(result))
 
@@ -66,52 +69,6 @@ module AskNotion
       Log.error { "Catched exception : #{ex}" }
       halt env, status_code: 500, response: "Unexpected error happened"
     end
-  end
-
-  def self.search_in_notion(searched_text)
-    Crest::Request.execute(:post,
-      Config::NOTION_SEARCH_URL,
-      headers: {
-        "Content-Type"   => "application/json",
-        "Notion-Version" => Config::NOTION_API_VERSION,
-        "Authorization"  => Config::NOTION_API_KEY,
-      },
-      form: {
-        "query"   => searched_text,
-        "page_size": 5,
-        "sort":      {
-          "direction" => "ascending",
-          "timestamp" => "last_edited_time",
-        },
-      }.to_json
-    )
-  end
-
-  def self.create_notion_page(searched_text)
-    Crest::Request.execute(:post,
-      Config::NOTION_PAGE_URL,
-      headers: {
-        "Content-Type"   => "application/json",
-        "Notion-Version" => Config::NOTION_API_VERSION,
-        "Authorization"  => Config::NOTION_API_KEY,
-      },
-      form: {
-        "parent": {
-          "type":    "page_id",
-          "page_id": Config::PAGE_PARENT_ID,
-        },
-        "properties": {
-          "title": [
-            {
-              "type": "text",
-              "text": {
-                "content": searched_text,
-              },
-            },
-          ],
-        },
-      }.to_json
-    )
   end
 end
 
