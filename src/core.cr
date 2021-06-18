@@ -123,6 +123,5 @@ module AskNotion
       hash = JSON.parse(content)
       hash["results"].as_a unless hash["results"]?.nil?
     end
-
   end
 end
