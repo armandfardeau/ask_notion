@@ -8,7 +8,7 @@ module AskNotion
     NOTION_SEARCH_URL    = ENV["NOTION_SEARCH_URL"]?.try(&.to_s) || "https://api.notion.com/v1/search"                                                 # Notion base search url
     NOTION_PAGE_URL      = ENV["NOTION_PAGE_URL"]?.try(&.to_s) || "https://api.notion.com/v1/pages"                                                    # Notion base page url
     NOTION_API_VERSION   = ENV["NOTION_API_VERSION"]?.try(&.to_s) || "2021-05-13"                                                                      # Notion API version
-    NOTION_PAGE_SIZE     = ENV["NOTION_PAGE_SIZE"]?.try(&.to_i) || 10                                                                                # Number of results returned by notion API
+    NOTION_PAGE_SIZE     = ENV["NOTION_PAGE_SIZE"]?.try(&.to_i) || 10                                                                                  # Number of results returned by notion API
     ROCKET_CHAT_URL      = ENV["ROCKET_CHAT_URL"]?.try(&.to_s) || "https://osp.rocket.chat"                                                            # Rocket chat server base url
     ROCKET_API_TOKEN     = ENV["ROCKET_API_TOKEN"]?.try(&.to_s) || ""                                                                                  # Rocket chat API token
     ROCKET_API_ID        = ENV["ROCKET_API_ID"]?.try(&.to_s) || ""                                                                                     # Rocket chat API ID
