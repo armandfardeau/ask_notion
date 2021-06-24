@@ -78,6 +78,6 @@ end
 
 def web_mock_notion_pages
   WebMock.stub(:post, "https://api.notion.com/v1/pages")
-    .with(body: "{\"parent\":{\"type\":\"page_id\",\"page_id\":\"#{AskNotion::Config::PAGE_PARENT_ID}\"},\"properties\":{\"title\":[{\"type\":\"text\",\"text\":{\"content\":\"dummy text\"}}]}}", headers: {"Content-Type" => "application/json", "Notion-Version" => AskNotion::Config::NOTION_API_VERSION, "Authorization" => AskNotion::Config::NOTION_API_KEY, "User-Agent" => "Crest/0.27.0 (Crystal/1.0.0)"})
+    .with(body: "{\"parent\":{\"type\":\"page_id\"},\"properties\":{\"title\":[{\"type\":\"text\",\"text\":{\"content\":\"dummy text\"}}]}}", headers: {"Content-Type" => "application/json", "Notion-Version" => AskNotion::Config::NOTION_API_VERSION, "Authorization" => AskNotion::Config::NOTION_API_KEY, "User-Agent" => "Crest/0.27.0 (Crystal/1.0.0)"})
     .to_return(body: {"results": [] of String, "id": "dummy_id"}.to_json)
 end
