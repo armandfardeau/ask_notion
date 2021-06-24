@@ -54,8 +54,8 @@ module AskNotion
 
     Log.info { "#{results.not_nil!.size} results found !" }
     responses = Array(JSON::Any).new
-    results.not_nil!.each do |result|
-      sent = send_to_rocket(data["room_id"], data["message_id"], search_message_builder(result))
+    results.not_nil!.each_with_index do |result, index|
+      sent = send_to_rocket(data["room_id"], data["message_id"], search_message_builder(result, data["searched_text"], index))
 
       responses << JSON.parse(sent.body) if !sent.nil?
     end
