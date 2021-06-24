@@ -25,7 +25,6 @@ module AskNotion
         end
       rescue ex : KeyError
         text = "#{fallback} #{index}"
-        Log.info { text }
       end
 
       id = result["id"].as_s.gsub("-", "")
