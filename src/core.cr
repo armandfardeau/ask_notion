@@ -18,14 +18,14 @@ module AskNotion
     def search_message_builder(result, fallback, index)
       text = ""
       begin
-      if result["parent"]["type"] == "page_id"
-        text = result["properties"]["title"]["title"][0]["plain_text"]
-      elsif result["parent"]["type"] == "database_id"
-        text = result["properties"]["Name"]["title"][0]["plain_text"]
-      end
+        if result["parent"]["type"] == "page_id"
+          text = result["properties"]["title"]["title"][0]["plain_text"]
+        elsif result["parent"]["type"] == "database_id"
+          text = result["properties"]["Name"]["title"][0]["plain_text"]
+        end
       rescue ex : KeyError
         text = "#{fallback} #{index}"
-      Log.info { text }
+        Log.info { text }
       end
 
       id = result["id"].as_s.gsub("-", "")
