@@ -6,6 +6,8 @@ require "../src/app"
 require "../src/config"
 require "../src/core"
 
+Spec.before_each &->WebMock.reset
+
 def rocket_chat_sample(text : String = "dummy text", token : String = "dummy_token", tmid : String | Nil = "azertyuiop1")
   sample = {
     "token"        => token,
