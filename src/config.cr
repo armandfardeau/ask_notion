@@ -1,5 +1,7 @@
 module AskNotion
   module Config
+    extend self
+
     HOST                 = ENV["HOST"]?.try(&.to_s) || "0.0.0.0"                                                                                       # Host of Kemal server
     PORT                 = ENV["PORT"]?.try(&.to_i) || 8080                                                                                            # Port of Kemal server
     NOTION_API_KEY       = ENV["NOTION_API_KEY"]?.try(&.to_s) || ""                                                                                    # Notion integration API key

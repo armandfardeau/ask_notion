@@ -30,7 +30,7 @@ login:
 
 specs:
 	@echo "Running tests..."
-	KEMAL_ENV=test SPEC_VERBOSE=1 LOG_LEVEL=error crystal spec
+	ROCKET_SECRET_TOKEN="" NOTION_API_KEY="" KEMAL_ENV=test SPEC_VERBOSE=1 LOG_LEVEL=error crystal spec
 
 make test:
 	curl localhost:$(PORT)

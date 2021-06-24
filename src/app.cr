@@ -3,6 +3,9 @@ require "crest"
 require "./config"
 require "./core"
 
+include AskNotion::Config
+include AskNotion::Core
+
 module AskNotion
   before_all "/" do |env|
     env.response.content_type = "application/json"
@@ -13,72 +16,80 @@ module AskNotion
       # Get question from rocketchat
       body = env.params.json
 
-      if !Core.valid_rocket_token?(body["token"].as(String))
+      # check if Rocket token is valid
+      if !valid_rocket_token?(body["token"].as(String))
         Log.info { "An unauthorized access has been recorded from #{env.request.remote_address} with #{body["token"]}" }
         halt env, status_code: 401, response: "Unauthorized"
       end
 
+      # Stop program if request came from thread answer
       if body["tmid"]?
         Log.info { "Tmid provided, doing nothing" }
         halt env, status_code: 200, response: "tmid provided, doing nothing"
       end
 
-      # Check notion search for response
-      room_id = body["channel_id"]
-      message_id = body["message_id"]
-      searched_text = body["text"]
+      # Store data from message
+      data = {
+        "room_id":       body["channel_id"]?,
+        "message_id":    body["message_id"]?,
+        "searched_text": body["text"]?,
+      }
 
-      request = Core.search_in_notion(searched_text)
+      # Search for results in Notion
+      request = search_in_notion(data["searched_text"])
+      # Format results
+      results = notion_results(request.body)
 
-      results = JSON.parse(request.body)["results"].as_a
-      # results = Core.clean_up_results(results)
-
-      Log.info { "Returning results: #{results}" }
-      if results.empty?
-        Log.info { "No results found from Notion, creating page..." }
-        page_response = Core.create_notion_page(searched_text)
-        page = JSON.parse(page_response.body)
-
-        Log.info { "Created page: #{page}" }
-
-        response = Core.send_to_rocket(room_id, message_id, Core.page_message_builder(searched_text, page), Config::CREATED_PAGE_MESSAGE)
+      if results.nil? || results.empty?
+        # Create page and send message on rocket
+        page = create_new_page(data)
+        response = send_to_rocket(data["room_id"], data["message_id"], page_message_builder(data["searched_text"], page), CREATED_PAGE_MESSAGE)
         if !response.nil? && !response.body.nil?
           halt env, status_code: 200, response: JSON.parse(response.body)
         end
 
         halt env, status_code: 200, response: "No response sent"
       end
-
-      Log.info { "#{results.size} results found !" }
-      responses = Array(Crest::Response).new
-      results.each do |result|
-        sent = Core.send_to_rocket(room_id, message_id, Core.search_message_builder(result))
-
-        responses << sent if !sent.nil?
-      end
-
-      returned_responses = responses.map { |response| JSON.parse(response.body) }.to_json
-      Log.info { "Returned_responses: #{returned_responses}" }
-      halt env, status_code: 200, response: returned_responses
-    rescue ex : JSON::ParseException
-      Log.error { "Request from #{env.request.remote_address} - Body parsing error" }
-      Log.error { "Catched exception : #{ex}" }
-      halt env, status_code: 500, response: "Error when parsing body request, please ensure your body request is correct"
-    rescue ex : Exception
-      Log.error { "Request from #{env.request.remote_address} - Unexpected error happened" }
-      Log.error { "Catched exception : #{ex}" }
-      halt env, status_code: 500, response: "Unexpected error happened"
     end
+
+    Log.info { "#{results.not_nil!.size} results found !" }
+    responses = Array(JSON::Any).new
+    results.not_nil!.each do |result|
+      sent = send_to_rocket(data["room_id"], data["message_id"], search_message_builder(result))
+
+      responses << JSON.parse(sent.body) if !sent.nil?
+    end
+
+    Log.info { "Return: #{responses.to_json}" }
+    halt env, status_code: 200, response: responses.to_json
+  rescue ex : JSON::ParseException
+    Log.error { "Request from #{env.request.remote_address} - Body parsing error" }
+    Log.error { "Catched exception : #{ex}" }
+    halt env, status_code: 500, response: "Error when parsing body request, please ensure your body request is correct"
+  rescue ex : Exception
+    Log.error { "Request from #{env.request.remote_address} - Unexpected error happened" }
+    Log.error { "Catched exception : #{ex}" }
+    halt env, status_code: 500, response: "Unexpected error happened"
   end
 end
 
-Kemal.config.env = AskNotion::Config::ENVIRONNEMENT
+def self.create_new_page(data)
+  Log.info { "No results found from Notion, creating page..." }
+  page_response = create_notion_page(data["searched_text"])
+  page = JSON.parse(page_response.body)
+
+  Log.info { "Created page: #{page}" }
+
+  page
+end
+
+Kemal.config.env = ENVIRONNEMENT
 serve_static false
 
 if Kemal.config.env == "production"
   Kemal.run do |config|
     server = config.server.not_nil!
-    server.bind_tcp AskNotion::Config::HOST, AskNotion::Config::PORT, reuse_port: true
+    server.bind_tcp HOST, PORT, reuse_port: true
   end
 else
   Kemal.run
