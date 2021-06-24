@@ -15,12 +15,16 @@ module AskNotion
       message_builder(text, page["id"].as_s.gsub("-", ""))
     end
 
-    def search_message_builder(result)
+    def search_message_builder(result, fallback, index)
       text = ""
-      if result["parent"]["type"] == "page_id"
-        text = result["properties"]["title"]["title"][0]["plain_text"]
-      elsif result["parent"]["type"] == "database_id"
-        text = result["properties"]["Name"]["title"][0]["plain_text"]
+      begin
+        if result["parent"]["type"] == "page_id"
+          text = result["properties"]["title"]["title"][0]["plain_text"]
+        elsif result["parent"]["type"] == "database_id"
+          text = result["properties"]["Name"]["title"][0]["plain_text"]
+        end
+      rescue ex : KeyError
+        text = "#{fallback} #{index}"
       end
 
       id = result["id"].as_s.gsub("-", "")
